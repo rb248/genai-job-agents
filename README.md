@@ -54,6 +54,17 @@ Currently works well only with OpenAI GPT-4 / Llama/Groq still unstable.
 +-----------+                 +---------+                  +-----------+            +----------+ 
 ````
 
-### TODO
-- enrich linkedin search with more params
-- bug fixes: Groq Llama, unstable, due to inappropriate routing / token limit
+
+
+---
+
+## Changelog / Improvements (vs. original repository)
+
+- Improved job search and selection workflow in the Streamlit app.
+- Persisted job results in session state for reliable UI experience.
+- Added direct CV and cover letter generation utility (`generate_cv_and_cover_letter`).
+- Enhanced UI/UX for job selection and CSV export (job selection and CV/cover letter generation now persist across reruns).
+- Improved agent graph and supervisor logic for more robust multi-agent workflow.
+- General bug fixes and code cleanup.
+
+See the code and comments for details on each change.
