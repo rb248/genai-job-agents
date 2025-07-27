@@ -1,6 +1,7 @@
 .ipynb_checkpoints/*
 data/*
 .env
+.env.*
 __pycache__/*
 notebooks/*
 tmp/*

@@ -21,19 +21,27 @@ def get_job_type(job_type):
 def get_job_ids(keywords, location_name, job_type=None, limit=10, companies=None, industries=None, remote=None):
     if job_type is not None:
         job_type = get_job_type(job_type)
-    print("Arguments are:", keywords, location_name, job_type, limit, companies, industries, remote)
+    print(f"DEBUG: get_job_ids called with keywords={keywords}, location_name={location_name}, job_type={job_type}, limit={limit}, companies={companies}, industries={industries}, remote={remote}")
 
-    job_postings = api.search_jobs(
-        keywords=keywords,
-        job_type=job_type,
-        location_name=location_name,
-        companies=companies,
-        industries=industries,
-        remote=remote,
-        limit = limit
-    )
-    # Extracting just the part after "jobPosting:" from the trackingUrn and the title using list comprehension
-    job_ids = [job['trackingUrn'].split('jobPosting:')[1] for job in job_postings]
+    # Support multiple locations
+    if isinstance(location_name, str):
+        location_names = [location_name]
+    else:
+        location_names = location_name if location_name else []
+    job_ids = []
+    for loc in location_names:
+        print(f"DEBUG: api.search_jobs called with location_name={loc}, remote={remote}")
+        job_postings = api.search_jobs(
+            keywords=keywords,
+            job_type=job_type,
+            location_name=loc,
+            companies=companies,
+            industries=industries,
+            remote=remote,
+            limit=limit
+        )
+        print(f"DEBUG: api.search_jobs returned {len(job_postings)} jobs for location_name={loc}")
+        job_ids += [job['trackingUrn'].split('jobPosting:')[1] for job in job_postings]
     return job_ids
 
 import nest_asyncio
@@ -42,7 +50,7 @@ nest_asyncio.apply()
 async def get_job_details(job_id):
     try:
         job_data = api.get_job(job_id)  # Assuming this function is async and fetches job data
-        
+        #print(f"DEBUG: Raw job_data for job_id {job_id}: {job_data}")
         # Construct the job data dictionary with defaults
         job_data_dict = {
             "company_name": job_data.get('companyDetails', {}).get('com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany', {}).get('companyResolutionResult', {}).get('name', ''),
@@ -53,8 +61,8 @@ async def get_job_details(job_id):
             "company_apply_url": job_data.get('applyMethod', {}).get('com.linkedin.voyager.jobs.OffsiteApply', {}).get('companyApplyUrl', ''),
             "job_location": job_data.get('formattedLocation', '')
         }
+        #print(f"DEBUG: Parsed job_data_dict for job_id {job_id}: {job_data_dict}")
     except Exception as e:
-        # Handle exceptions or errors in fetching or parsing the job data
         print(f"Error fetching job details for job ID {job_id}: {str(e)}")
         job_data_dict = {
             "company_name": '',
@@ -65,7 +73,6 @@ async def get_job_details(job_id):
             "company_apply_url": '',
             "job_location": ''
         }
-
     return job_data_dict
 
 async def fetch_all_jobs(job_ids, batch_size=10):
